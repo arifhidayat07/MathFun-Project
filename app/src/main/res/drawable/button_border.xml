@@ -1,0 +1,7 @@
+<!-- res/drawable/button_border.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/white"/> <!-- Warna background putih -->
+    <stroke
+        android:width="2dp" android:color="@android:color/black" />  <!-- Warna garis tepi hitam -->
+    <corners android:radius="30dp"/> <!-- Sudut membulat, opsional -->
+</shape>
