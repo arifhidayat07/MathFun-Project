@@ -12,72 +12,96 @@
         android:id="@+id/logo"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:background="@drawable/logo"
+        android:src="@drawable/logo1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.14"/>
-    
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="5dp">
-
+            android:layout_marginBottom="8dp">
             <ImageButton
                 android:id="@+id/btn_setting"
                 android:layout_width="46dp"
                 android:layout_height="46dp"
-                android:background="@drawable/circle_button"
-                android:elevation="0dp"
-                android:text="" />
+                android:background="@drawable/circle_button" />
             <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
                 android:src="@drawable/settings"
                 android:layout_gravity="center"
                 app:tint="@color/black"/>
         </FrameLayout>
+
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="5dp"
-            android:background="@android:color/transparent">
+            android:layout_marginBottom="8dp">
             <ImageButton
                 android:id="@+id/btn_info"
                 android:layout_width="46dp"
                 android:layout_height="46dp"
                 android:background="@drawable/circle_button"
-                android:backgroundTint="@color/grey"
-                android:elevation="0dp"
-                android:text="" />
+                android:backgroundTint="@color/grey" />
             <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
                 android:src="@drawable/info"
                 android:layout_gravity="center"
                 app:tint="@color/black"/>
         </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageButton
+                android:id="@+id/btn_peringkat"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:background="@drawable/circle_button"
+                android:backgroundTint="#FFD700" />
+            <ImageView
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:src="@android:drawable/btn_star_big_on"
+                android:layout_gravity="center"
+                app:tint="@color/black"/>
+        </FrameLayout>
+
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_greeting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Halo! Masukkan namamu:"
+        android:textColor="@color/black"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="14dp"
+        app:layout_constraintBottom_toTopOf="@+id/name_card_view"
+        app:layout_constraintStart_toStartOf="@+id/name_card_view"
+        app:layout_constraintEnd_toEndOf="@+id/name_card_view"/>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/name_card_view"
         android:layout_width="307dp"
-        android:layout_height="45dp"
-        app:cardCornerRadius="20dp"
-        app:layout_constraintVertical_bias="0.5"
+        android:layout_height="48dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="6dp"
+        app:layout_constraintVertical_bias="0.55"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/logo"
@@ -88,25 +112,42 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:hint="Masukan Nama"
-            android:textColorHint="@color/black"
+            android:paddingHorizontal="20dp"
+            android:textColorHint="#9E9E9E"
             android:gravity="center"
+            android:inputType="textPersonName"
+            android:maxLines="1"
+            android:imeOptions="actionDone"
             android:textColor="@android:color/black"
             android:textSize="16sp"
-            android:background="@color/white"
-            android:backgroundTint="@color/colorEditText" />
+            android:background="@android:color/transparent" />
     </androidx.cardview.widget.CardView>
 
-    <Button
-        android:id="@+id/btn_mulai"
-        android:layout_width="308dp"
-        android:layout_height="50dp"
-        android:text="Mulai"
-        android:textColor="@color/white"
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="307dp"
+        android:layout_height="48dp"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="6dp"
         android:backgroundTint="@color/colorPrimary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/name_card_view"
         app:layout_constraintVertical_bias="0.1"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+            android:id="@+id/btn_mulai"
+            android:layout_width="308dp"
+            android:layout_height="50dp"
+            android:text="Mulai"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/colorPrimary"/>
+
+    </androidx.cardview.widget.CardView>
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -60,7 +60,7 @@ public class Level4Activity extends AppCompatActivity {
         btnJawab.setOnClickListener(v -> {
             String userAnswer = etAnswer.getText().toString().trim();
 
-            if (userAnswer.equals("4")) {
+            if (userAnswer.equals("22")) {
                 score += 20;
                 Toast.makeText(Level4Activity.this, "Jawaban benar!", Toast.LENGTH_SHORT).show();
                 if (countDownTimer != null) {

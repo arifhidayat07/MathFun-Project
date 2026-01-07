@@ -7,6 +7,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
+import android.view.animation.Animation; // Import ini
+import android.view.animation.AnimationUtils; // Import ini
+import android.widget.ImageView; // Import ini
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,9 +19,10 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
 
-    ImageButton btnSettings, btnInfo;
+    ImageButton btnSettings, btnInfo, btnPeringkat; // Tambahkan btnPeringkat
     Button btnMulai;
     EditText etUsername;
+    ImageView logo; // Tambahkan ini
 
     private SharedPreferences sharedPreferences;
     private static final String PREFS_NAME = "settings_prefs";
@@ -30,29 +34,44 @@ public class MainActivity extends AppCompatActivity {
     private static final String GAME_PREFS = "GamePrefs";
     private static final String SCORE_KEY = "total_score";
 
+    DBConfig dbConfig; // Inisialisasi DBConfig
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        // 1. Atur Window Insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // 2. INISIALISASI SEMUA VIEW (PENTING: Harus dilakukan paling awal!)
         btnSettings = findViewById(R.id.btn_setting);
         btnInfo = findViewById(R.id.btn_info);
         btnMulai = findViewById(R.id.btn_mulai);
+        btnPeringkat = findViewById(R.id.btn_peringkat);
         etUsername = findViewById(R.id.et_username);
+        logo = findViewById(R.id.logo);
 
+        // 3. Inisialisasi Database & SharedPreferences
+        dbConfig = new DBConfig(this);
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean isSoundEnabled = sharedPreferences.getBoolean(SOUND_KEY, true);
 
-        if (isSoundEnabled) {
-            MusicManager.getInstance().startMusic(this);
+        // 4. JALANKAN ANIMASI (Sekarang aman karena logo sudah di-inisialisasi)
+        if (logo != null) {
+            Animation floatingAnimation = AnimationUtils.loadAnimation(this, R.anim.floating_animation);
+            logo.startAnimation(floatingAnimation);
         }
+
+        // 5. ATUR SEMUA LISTENER TOMBOL
+        btnPeringkat.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, LeaderboardActivity.class);
+            startActivity(intent);
+        });
 
         btnSettings.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, PengaturanActivity.class);
@@ -72,23 +91,27 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Simpan username ke SharedPreferences USER_PREFS
+            // Simpan data
             SharedPreferences userPrefs = getSharedPreferences(USER_PREFS, MODE_PRIVATE);
-            SharedPreferences.Editor editorUser = userPrefs.edit();
-            editorUser.putString(USERNAME_KEY, username);
-            editorUser.apply();
+            userPrefs.edit().putString(USERNAME_KEY, username).apply();
 
-            // Reset skor total ke 0 saat mulai permainan baru
             SharedPreferences gamePrefs = getSharedPreferences(GAME_PREFS, MODE_PRIVATE);
-            SharedPreferences.Editor editorGame = gamePrefs.edit();
-            editorGame.putInt(SCORE_KEY, 0);
-            editorGame.apply();
+            gamePrefs.edit().putInt(SCORE_KEY, 0).apply();
 
-            // Mulai Level1Activity, bisa juga kirim username lewat intent jika perlu
+            // SQLite
+            dbConfig.addScore(username, 0);
+
+            // Pindah Activity
             Intent intent = new Intent(MainActivity.this, Level1Activity.class);
             intent.putExtra(USERNAME_KEY, username);
             startActivity(intent);
         });
+
+        // 6. Musik
+        boolean isSoundEnabled = sharedPreferences.getBoolean(SOUND_KEY, true);
+        if (isSoundEnabled) {
+            MusicManager.getInstance().startMusic(this);
+        }
     }
 
     @Override
@@ -105,5 +128,11 @@ public class MainActivity extends AppCompatActivity {
         // Reset skor di onResume juga agar benar-benar fresh jika user kembali ke main
         SharedPreferences gamePrefs = getSharedPreferences(GAME_PREFS, MODE_PRIVATE);
         gamePrefs.edit().putInt(SCORE_KEY, 0).apply();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        logo.clearAnimation(); // Hentikan animasi saat Activity tidak terlihat
     }
 }

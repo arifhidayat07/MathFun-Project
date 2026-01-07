@@ -7,6 +7,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +25,9 @@ public class MenangActivity extends AppCompatActivity {
     private static final String USERNAME_KEY = "username";
 
     private String username;
+
+    // Inisialisasi DBConfig
+    private DBConfig dbConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,21 +47,22 @@ public class MenangActivity extends AppCompatActivity {
         btnKembali = findViewById(R.id.btn_kembalikeberanda);
         btnShare = findViewById(R.id.btn_share);
 
+        // Inisialisasi Database
+        dbConfig = new DBConfig(this);
+
         // Ambil username dari SharedPreferences
         SharedPreferences prefs = getSharedPreferences(USER_PREFS, MODE_PRIVATE);
-        username = prefs.getString(USERNAME_KEY, "");
+        username = prefs.getString(USERNAME_KEY, "Player");
 
-        Log.d("MenangActivity", "Username dari SharedPreferences: " + username);
-
-        if (!username.isEmpty()) {
-            tvWinnerMessage.setText(username + ", Kamu Menang. \nAyo Coba Lagi");
-        } else {
-            tvWinnerMessage.setText("Kamu Menang. Ayo Coba Lagi");
-        }
-
-        // Ambil skor dari Intent (bukan SharedPreferences lagi)
+        // Ambil skor dari Intent
         int totalScore = getIntent().getIntExtra("score", 0);
         tvScore.setText("Poin: " + totalScore);
+
+        // Tampilkan pesan kemenangan
+        tvWinnerMessage.setText(username + ", Kamu Menang. \nAyo Coba Lagi");
+
+        // --- SIMPAN KE SQLITE ---
+        simpanSkorKeDatabase(username, totalScore);
 
         // Tombol kembali ke beranda
         btnKembali.setOnClickListener(view -> {
@@ -69,14 +74,23 @@ public class MenangActivity extends AppCompatActivity {
 
         // Tombol Share
         btnShare.setOnClickListener(view -> {
-            String shareText = !username.isEmpty()
-                    ? username + " berhasil menang di game MathFun! Yuk coba juga!"
-                    : "Saya berhasil menang di game MathFun! Yuk coba juga!";
-
+            String shareText = username + " berhasil menang di MathFun dengan skor " + totalScore + "!";
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
             shareIntent.putExtra(Intent.EXTRA_TEXT, shareText);
             startActivity(Intent.createChooser(shareIntent, "Bagikan melalui"));
         });
     }
+
+    private void simpanSkorKeDatabase(String name, int score) {
+        try {
+            dbConfig.addScore(name, score);
+            Log.d("DB_LOG", "Berhasil menyimpan skor: " + name + " - " + score);
+        } catch (Exception e) {
+            Log.e("DB_LOG", "Gagal menyimpan skor", e);
+            Toast.makeText(this, "Gagal menyimpan skor ke database", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
 }
