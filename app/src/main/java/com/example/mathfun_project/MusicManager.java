@@ -23,6 +23,7 @@ public class MusicManager {
             mediaPlayer = MediaPlayer.create(context, R.raw.music_game);
             mediaPlayer.setLooping(true);
             mediaPlayer.start();
+            mediaPlayer.setVolume(1.0f, 1.0f);
         } else if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
         }
