@@ -5,11 +5,12 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.Toast;
-import android.view.animation.Animation; // Import ini
-import android.view.animation.AnimationUtils; // Import ini
-import android.widget.ImageView; // Import ini
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,22 +20,22 @@ import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
 
-    ImageButton btnSettings, btnInfo, btnPeringkat; // Tambahkan btnPeringkat
-    Button btnMulai;
-    EditText etUsername;
-    ImageView logo; // Tambahkan ini
+    private ImageButton btnSettings, btnInfo, btnPeringkat;
+    private Button btnMulai;
+    private EditText etUsername;
+    private ImageView logo;
 
-    private SharedPreferences sharedPreferences;
+    // Nama file dan Key harus konsisten di seluruh Activity
     private static final String PREFS_NAME = "settings_prefs";
     private static final String SOUND_KEY = "sound_enabled";
 
-    private static final String USER_PREFS = "user_prefs";
-    private static final String USERNAME_KEY = "username";
-
     private static final String GAME_PREFS = "GamePrefs";
+    private static final String USERNAME_KEY = "username";
     private static final String SCORE_KEY = "total_score";
 
-    DBConfig dbConfig; // Inisialisasi DBConfig
+    private SharedPreferences sharedPreferences;
+    private FrameLayout particleContainer;
+    private ParticleEffect particleEffect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,14 +43,14 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        // 1. Atur Window Insets
+        // Pengaturan padding untuk sistem bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // 2. INISIALISASI SEMUA VIEW (PENTING: Harus dilakukan paling awal!)
+        // 1. Inisialisasi View
         btnSettings = findViewById(R.id.btn_setting);
         btnInfo = findViewById(R.id.btn_info);
         btnMulai = findViewById(R.id.btn_mulai);
@@ -57,32 +58,15 @@ public class MainActivity extends AppCompatActivity {
         etUsername = findViewById(R.id.et_username);
         logo = findViewById(R.id.logo);
 
-        // 3. Inisialisasi Database & SharedPreferences
-        dbConfig = new DBConfig(this);
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        // 4. JALANKAN ANIMASI (Sekarang aman karena logo sudah di-inisialisasi)
+        // 2. Animasi Logo
         if (logo != null) {
             Animation floatingAnimation = AnimationUtils.loadAnimation(this, R.anim.floating_animation);
             logo.startAnimation(floatingAnimation);
         }
 
-        // 5. ATUR SEMUA LISTENER TOMBOL
-        btnPeringkat.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, LeaderboardActivity.class);
-            startActivity(intent);
-        });
-
-        btnSettings.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, PengaturanActivity.class);
-            startActivity(intent);
-        });
-
-        btnInfo.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, InformasiActivity.class);
-            startActivity(intent);
-        });
-
+        // 3. Logika Tombol Mulai
         btnMulai.setOnClickListener(v -> {
             String username = etUsername.getText().toString().trim();
 
@@ -91,33 +75,47 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Simpan data
-            SharedPreferences userPrefs = getSharedPreferences(USER_PREFS, MODE_PRIVATE);
-            userPrefs.edit().putString(USERNAME_KEY, username).apply();
-
+            // SIMPAN DATA KE GAME_PREFS
             SharedPreferences gamePrefs = getSharedPreferences(GAME_PREFS, MODE_PRIVATE);
-            gamePrefs.edit().putInt(SCORE_KEY, 0).apply();
+            gamePrefs.edit()
+                    .putString(USERNAME_KEY, username)
+                    .putInt(SCORE_KEY, 0) // Reset skor menjadi 0 setiap kali mulai baru
+                    .apply();
 
-            // SQLite
-            dbConfig.addScore(username, 0);
-
-            // Pindah Activity
+            // Pindah ke Level 1
             Intent intent = new Intent(MainActivity.this, Level1Activity.class);
-            intent.putExtra(USERNAME_KEY, username);
             startActivity(intent);
         });
 
-        // 6. Musik
-        boolean isSoundEnabled = sharedPreferences.getBoolean(SOUND_KEY, true);
-        if (isSoundEnabled) {
-            MusicManager.getInstance().startMusic(this);
+        // 4. Tombol Navigasi Lainnya
+        btnPeringkat.setOnClickListener(v -> startActivity(new Intent(this, LeaderboardActivity.class)));
+        btnSettings.setOnClickListener(v -> startActivity(new Intent(this, PengaturanActivity.class)));
+        btnInfo.setOnClickListener(v -> startActivity(new Intent(this, InformasiActivity.class)));
+
+        setupParticles();
+    }
+
+    private void setupParticles() {
+        particleContainer = findViewById(R.id.particle_container);
+        if (particleContainer != null) {
+            particleEffect = new ParticleEffect(particleContainer);
+            final android.os.Handler handler = new android.os.Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (particleContainer.getWidth() > 0) {
+                        particleEffect.emitParticles(3);
+                    }
+                    handler.postDelayed(this, 1500);
+                }
+            }, 2000);
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        // Cek pengaturan suara
         boolean isSoundEnabled = sharedPreferences.getBoolean(SOUND_KEY, true);
         if (isSoundEnabled) {
             MusicManager.getInstance().startMusic(this);
@@ -125,14 +123,13 @@ public class MainActivity extends AppCompatActivity {
             MusicManager.getInstance().pauseMusic();
         }
 
-        // Reset skor di onResume juga agar benar-benar fresh jika user kembali ke main
-        SharedPreferences gamePrefs = getSharedPreferences(GAME_PREFS, MODE_PRIVATE);
-        gamePrefs.edit().putInt(SCORE_KEY, 0).apply();
+        // Pastikan skor di-reset ke 0 saat kembali ke menu utama
+        getSharedPreferences(GAME_PREFS, MODE_PRIVATE).edit().putInt(SCORE_KEY, 0).apply();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        logo.clearAnimation(); // Hentikan animasi saat Activity tidak terlihat
+        if (logo != null) logo.clearAnimation(); //
     }
 }

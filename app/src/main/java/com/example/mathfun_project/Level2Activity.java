@@ -1,9 +1,10 @@
 package com.example.mathfun_project;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -25,7 +26,10 @@ public class Level2Activity extends AppCompatActivity {
 
     private CountDownTimer countDownTimer;
     private long timeLeftInMillis = 60000; // 1 menit
-    private int score = 20; // Default score jika tidak ada data masuk
+
+    // Kunci SharedPreferences yang konsisten dengan Level 1
+    private static final String PREFS_NAME = "GamePrefs";
+    private static final String KEY_SCORE = "total_score";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,59 +37,51 @@ public class Level2Activity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_level2);
 
+        // Pengaturan Insets agar tidak tertutup Notch/Status Bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Ambil score dari level sebelumnya jika ada
-        Intent intent = getIntent();
-        score = intent.getIntExtra("score", 20); // default 20 jika tidak ada
-
+        // Inisialisasi View
         tvTimer = findViewById(R.id.tv_timer);
+        tvScore = findViewById(R.id.tv_score);
         etAnswer = findViewById(R.id.et_answer);
         btnJawab = findViewById(R.id.btn_jawab);
         btnSettings = findViewById(R.id.btn_setting);
-        tvScore = findViewById(R.id.tv_score);
 
-        updateScoreText();
+        // Update tampilan poin awal (diambil dari Level 1 via SharedPreferences)
+        updateScoreDisplay();
 
+        // Tombol Setting
         btnSettings.setOnClickListener(v -> {
             Intent pengaturanIntent = new Intent(Level2Activity.this, PengaturanLevelActivity.class);
             pengaturanIntent.putExtra("LEVEL_NAME", "Level2");
             startActivity(pengaturanIntent);
         });
 
+        // Tombol Jawab
         btnJawab.setOnClickListener(v -> {
             String userAnswer = etAnswer.getText().toString().trim();
 
             if (userAnswer.equals("10")) {
-                score += 20;
-                Toast.makeText(Level2Activity.this, "Anda benar", Toast.LENGTH_SHORT).show();
+                Toast.makeText(Level2Activity.this, "Anda benar!", Toast.LENGTH_SHORT).show();
                 if (countDownTimer != null) countDownTimer.cancel();
 
+                // Tambah poin 20 ke SharedPreferences
+                addScore(20);
+
+                // Lanjut ke Level 3
                 Intent nextIntent = new Intent(Level2Activity.this, Level3Activity.class);
-                nextIntent.putExtra("score", score); // kirim score ke Level3
                 startActivity(nextIntent);
                 finish();
             } else {
-                score -= 5;
-                if (score <= 0) {
-                    Toast.makeText(Level2Activity.this, "Poin habis! Kembali ke menu utama.", Toast.LENGTH_SHORT).show();
-                    if (countDownTimer != null) countDownTimer.cancel();
-
-                    Intent backIntent = new Intent(Level2Activity.this, MainActivity.class);
-                    backIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(backIntent);
-                    finish();
-                } else {
-                    Toast.makeText(Level2Activity.this, "Jawaban salah, poin dikurangi 5.", Toast.LENGTH_SHORT).show();
-                    updateScoreText();
-                }
+                // Jawaban salah: Kurangi poin 5
+                subtractScore(5);
+                Toast.makeText(Level2Activity.this, "Jawaban salah, poin -5", Toast.LENGTH_SHORT).show();
             }
-
-            etAnswer.setText("");
+            etAnswer.setText(""); // Kosongkan input
         });
 
         startTimer();
@@ -101,26 +97,53 @@ public class Level2Activity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-                tvTimer.setText("00:00");
-                Toast.makeText(Level2Activity.this, "Waktu Habis!", Toast.LENGTH_SHORT).show();
-
-                Intent timeoutIntent = new Intent(Level2Activity.this, MainActivity.class);
-                timeoutIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(timeoutIntent);
-                finish();
+                // Waktu habis: Pindah ke KalahActivity
+                goToKalahActivity();
             }
         }.start();
+    }
+
+    private void goToKalahActivity() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+
+        Intent intent = new Intent(Level2Activity.this, KalahActivity.class);
+        intent.putExtra("SCORE", currentScore); // Kunci "SCORE" sesuai standar kita
+        intent.putExtra("FAILED_LEVEL", "Level2");
+        startActivity(intent);
+        finish();
+    }
+
+    private void addScore(int points) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+        prefs.edit().putInt(KEY_SCORE, currentScore + points).apply();
+        updateScoreDisplay();
+    }
+
+    private void subtractScore(int points) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+        int newScore = Math.max(0, currentScore - points); // Agar tidak minus
+        prefs.edit().putInt(KEY_SCORE, newScore).apply();
+        updateScoreDisplay();
+
+        if (newScore <= 0) {
+            if (countDownTimer != null) countDownTimer.cancel();
+            goToKalahActivity(); // Poin habis = Kalah
+        }
+    }
+
+    private void updateScoreDisplay() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+        tvScore.setText("Poin: " + currentScore);
     }
 
     private void updateTimerText() {
         int minutes = (int) (timeLeftInMillis / 1000) / 60;
         int seconds = (int) (timeLeftInMillis / 1000) % 60;
-        String timeFormatted = String.format("%02d:%02d", minutes, seconds);
-        tvTimer.setText(timeFormatted);
-    }
-
-    private void updateScoreText() {
-        tvScore.setText("Poin: " + score);
+        tvTimer.setText(String.format("%02d:%02d", minutes, seconds));
     }
 
     @Override

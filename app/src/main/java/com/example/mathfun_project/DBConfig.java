@@ -5,6 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBConfig extends SQLiteOpenHelper {
 
@@ -31,33 +35,95 @@ public class DBConfig extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Menjalankan perintah create table saat database pertama kali dibuat
         db.execSQL(TABLE_CREATE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Menghapus tabel lama jika ada update versi dan membuat yang baru
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
         onCreate(db);
     }
 
-    // --- METODE HELPER UNTUK OPERASI DATA (CRUD) ---
+    // --- METODE UNTUK OPERASI DATA ---
 
-    // Fungsi untuk Simpan Data
-    public void addScore(String name, int score) {
+    /**
+     * Menambahkan skor baru menggunakan Objek UserScore.
+     * Digunakan di KalahActivity: db.addScore(new UserScore("Nama", skor));
+     */
+    public void addScore(UserScore userScore) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_NAME, name);
-        values.put(COLUMN_SCORE, score);
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME, userScore.getUsername());
+            values.put(COLUMN_SCORE, userScore.getScore());
 
-        db.insert(TABLE_NAME, null, values);
-        db.close();
+            db.insert(TABLE_NAME, null, values);
+        } catch (Exception e) {
+            Log.e("DB_ERROR", "Gagal insert data: " + e.getMessage());
+        } finally {
+            db.close();
+        }
     }
 
-    // Fungsi untuk Ambil Semua Data
-    public Cursor getAllScores() {
+    /**
+     * Menambahkan skor baru menggunakan Parameter String & Int.
+     */
+    public void addScore(String name, int score) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_NAME, name);
+            values.put(COLUMN_SCORE, score);
+
+            db.insert(TABLE_NAME, null, values);
+        } catch (Exception e) {
+            Log.e("DB_ERROR", "Gagal insert data: " + e.getMessage());
+        } finally {
+            db.close();
+        }
+    }
+
+    /**
+     * Mengambil semua skor dan diurutkan dari yang tertinggi (DESC).
+     * Digunakan di LeaderboardActivity untuk mengisi RecyclerView.
+     */
+    public List<UserScore> getAllScores() {
+        List<UserScore> scoreList = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM " + TABLE_NAME + " ORDER BY " + COLUMN_SCORE + " DESC", null);
+
+        // Query: Urutkan berdasarkan Skor Terbesar (DESC)
+        String selectQuery = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + COLUMN_SCORE + " DESC";
+
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery(selectQuery, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    String name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME));
+                    int score = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SCORE));
+
+                    scoreList.add(new UserScore(name, score));
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e("DB_ERROR", "Gagal ambil data: " + e.getMessage());
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            db.close();
+        }
+
+        return scoreList;
+    }
+
+    /**
+     * Opsional: Menghapus semua data skor (Reset Leaderboard).
+     */
+    public void clearAllScores() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_NAME);
+        db.close();
     }
 }

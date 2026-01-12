@@ -1,6 +1,8 @@
 package com.example.mathfun_project;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.widget.Button;
@@ -20,12 +22,14 @@ public class Level4Activity extends AppCompatActivity {
     private EditText etAnswer;
     private Button btnJawab;
     private ImageButton btnSettings;
-    private TextView tvTimer;
-    private TextView tvScore;
+    private TextView tvTimer, tvScore;
 
     private CountDownTimer countDownTimer;
     private long timeLeftInMillis = 60000; // 1 menit
-    private int score = 20; // default poin
+
+    // Gunakan KEY yang konsisten dengan seluruh level
+    private static final String PREFS_NAME = "GamePrefs";
+    private static final String KEY_SCORE = "total_score";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +43,15 @@ public class Level4Activity extends AppCompatActivity {
             return insets;
         });
 
-        // Ambil score dari Intent sebelumnya
-        Intent intent = getIntent();
-        score = intent.getIntExtra("score", 20);
-
+        // Inisialisasi View
         tvTimer = findViewById(R.id.tv_timer);
         tvScore = findViewById(R.id.tv_score);
         etAnswer = findViewById(R.id.et_answer);
         btnJawab = findViewById(R.id.btn_jawab);
         btnSettings = findViewById(R.id.btn_setting);
 
-        updateScoreText();
+        // Ambil skor akumulasi dari level sebelumnya melalui SharedPreferences
+        updateScoreDisplay();
 
         btnSettings.setOnClickListener(v -> {
             Intent intentSettings = new Intent(Level4Activity.this, PengaturanLevelActivity.class);
@@ -60,34 +62,22 @@ public class Level4Activity extends AppCompatActivity {
         btnJawab.setOnClickListener(v -> {
             String userAnswer = etAnswer.getText().toString().trim();
 
-            if (userAnswer.equals("22")) {
-                score += 20;
+            if (userAnswer.equals("22")) { // Jawaban benar Level 4
                 Toast.makeText(Level4Activity.this, "Jawaban benar!", Toast.LENGTH_SHORT).show();
-                if (countDownTimer != null) {
-                    countDownTimer.cancel();
-                }
-                // Kirim score ke Level5Activity
+                if (countDownTimer != null) countDownTimer.cancel();
+
+                // Tambah poin 20
+                addScore(20);
+
+                // Lanjut ke Level 5
                 Intent nextIntent = new Intent(Level4Activity.this, Level5Activity.class);
-                nextIntent.putExtra("score", score);
                 startActivity(nextIntent);
                 finish();
             } else {
-                score -= 5;
-                if (score <= 0) {
-                    Toast.makeText(Level4Activity.this, "Poin habis! Kembali ke menu utama.", Toast.LENGTH_SHORT).show();
-                    if (countDownTimer != null) {
-                        countDownTimer.cancel();
-                    }
-                    Intent mainIntent = new Intent(Level4Activity.this, MainActivity.class);
-                    mainIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(mainIntent);
-                    finish();
-                } else {
-                    Toast.makeText(Level4Activity.this, "Jawaban salah, poin -5!", Toast.LENGTH_SHORT).show();
-                    updateScoreText();
-                }
+                // Jawaban salah: Kurangi poin 5
+                subtractScore(5);
+                Toast.makeText(Level4Activity.this, "Jawaban salah, poin -5!", Toast.LENGTH_SHORT).show();
             }
-
             etAnswer.setText("");
         });
 
@@ -104,32 +94,58 @@ public class Level4Activity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-                tvTimer.setText("00:00");
-                Toast.makeText(Level4Activity.this, "Waktu habis!", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(Level4Activity.this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
+                goToKalahActivity();
             }
         }.start();
+    }
+
+    private void goToKalahActivity() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+
+        Intent intent = new Intent(Level4Activity.this, KalahActivity.class);
+        // Kunci "SCORE" harus seragam di semua activity
+        intent.putExtra("SCORE", currentScore);
+        intent.putExtra("FAILED_LEVEL", "Level4");
+        startActivity(intent);
+        finish();
+    }
+
+    private void addScore(int points) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+        prefs.edit().putInt(KEY_SCORE, currentScore + points).apply();
+        updateScoreDisplay();
+    }
+
+    private void subtractScore(int points) {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+        int newScore = Math.max(0, currentScore - points);
+        prefs.edit().putInt(KEY_SCORE, newScore).apply();
+        updateScoreDisplay();
+
+        if (newScore <= 0) {
+            if (countDownTimer != null) countDownTimer.cancel();
+            goToKalahActivity(); // Poin habis = Kalah
+        }
+    }
+
+    private void updateScoreDisplay() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        int currentScore = prefs.getInt(KEY_SCORE, 0);
+        tvScore.setText("Poin: " + currentScore);
     }
 
     private void updateTimerText() {
         int minutes = (int) (timeLeftInMillis / 1000) / 60;
         int seconds = (int) (timeLeftInMillis / 1000) % 60;
-        String timeFormatted = String.format("%02d:%02d", minutes, seconds);
-        tvTimer.setText(timeFormatted);
-    }
-
-    private void updateScoreText() {
-        tvScore.setText("Poin: " + score);
+        tvTimer.setText(String.format("%02d:%02d", minutes, seconds));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-        }
+        if (countDownTimer != null) countDownTimer.cancel();
     }
 }

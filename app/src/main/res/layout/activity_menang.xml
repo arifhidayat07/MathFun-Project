@@ -8,16 +8,47 @@
     tools:context=".MenangActivity"
     android:background="@color/background">
 
+    <View
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:background="@drawable/circle_button"
+        android:backgroundTint="#20FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="-150dp"/>
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/btn_star_big_on"
+        app:tint="#FFD700"
+        app:layout_constraintTop_toTopOf="@+id/logoKemenangan"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="50dp"
+        android:alpha="0.6"/>
+
+    <ImageView
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@android:drawable/btn_star_big_on"
+        app:tint="#FFD700"
+        app:layout_constraintBottom_toBottomOf="@+id/logoKemenangan"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="60dp"
+        android:alpha="0.5"/>
+
     <ImageView
         android:id="@+id/logoKemenangan"
-        android:layout_width="170dp"
-        android:layout_height="170dp"
-        android:src="@drawable/logokemenangan"
+        android:layout_width="190dp"
+        android:layout_height="190dp"
+        android:src="@drawable/logo"
+        android:elevation="8dp"
         app:layout_constraintBottom_toTopOf="@+id/tv_winner_message"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.2"
+        app:layout_constraintVertical_bias="0.15"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
@@ -25,11 +56,12 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:gravity="center"
-        android:text="Nama, Kamu Menang.\nAyo Coba Lagi"
-        android:textColor="@android:color/black"
-        android:textSize="20sp"
+        android:text="Luar Biasa, Nama!\nKamu Berhasil Menang!"
+        android:textColor="#2C3E50"
+        android:textSize="26sp"
+        android:lineSpacingExtra="4dp"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/scoreCard"
         app:layout_constraintEnd_toEndOf="parent"
@@ -38,11 +70,11 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/scoreCard"
-        android:layout_width="220dp"
+        android:layout_width="260dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="8dp"
+        android:layout_marginTop="32dp"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="15dp"
         app:layout_constraintBottom_toTopOf="@+id/btn_kembalikeberanda"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,70 +83,81 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#F8F9FA"
+            android:background="#FFFFFF"
             android:orientation="vertical"
-            android:padding="15dp">
+            android:padding="25dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="SKOR AKHIR"
-                android:textColor="#757575"
-                android:textSize="12sp" />
+                android:textColor="#BDC3C7"
+                android:textSize="14sp"
+                android:letterSpacing="0.2"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tv_score"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Poin: 100"
+                android:layout_marginTop="8dp"
+                android:text="100"
                 android:textColor="@color/colorPrimary"
-                android:textSize="32sp"
+                android:textSize="48sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="Poin"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
                 android:textStyle="bold" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_kembalikeberanda"
         android:layout_width="0dp"
-        android:layout_height="55dp"
-        android:layout_marginHorizontal="40dp"
-        android:layout_marginBottom="12dp"
-        android:backgroundTint="@color/colorPrimary"
-        android:text="Kembali ke Beranda"
-        android:textColor="@color/white"
-        app:cornerRadius="28dp"
+        android:layout_height="65dp"
+        android:layout_marginHorizontal="45dp"
+        android:layout_marginBottom="16dp"
+        android:text="Main Lagi!"
+        android:textSize="18sp"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        app:cornerRadius="32dp"
+        app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toTopOf="@+id/btn_share"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <LinearLayout
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_share"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="40dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/button_border"
-        android:gravity="center"
-        android:orientation="horizontal"
+        android:layout_height="55dp"
+        android:layout_marginHorizontal="45dp"
+        android:layout_marginBottom="40dp"
+        android:text="Bagikan Skor"
+        android:textAllCaps="false"
+        android:textColor="@color/black"
+        app:strokeColor="#DDDDDD"
+        app:cornerRadius="28dp"
+        app:icon="@drawable/share"
+        app:iconGravity="textStart"
+        app:iconTint="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/share" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Share Skor"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+    <FrameLayout
+        android:id="@+id/victory_particle_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="20dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
