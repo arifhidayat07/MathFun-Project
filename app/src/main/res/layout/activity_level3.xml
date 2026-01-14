@@ -331,7 +331,7 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/answer_card_view"
         android:layout_width="307dp"
-        android:layout_height="45dp"
+        android:layout_height="60dp"
         app:cardCornerRadius="20dp"
         app:layout_constraintVertical_bias="0.4"
         app:layout_constraintEnd_toEndOf="parent"
@@ -355,11 +355,12 @@
     <Button
         android:id="@+id/btn_jawab"
         android:layout_width="308dp"
-        android:layout_height="45dp"
+        android:layout_height="60dp"
         android:text="Jawab"
         android:textColor="@color/white"
         android:backgroundTint="@color/colorPrimary"
         android:textStyle="bold"
+        android:textSize="16sp"
         android:gravity="center"
         app:layout_constraintVertical_bias="0.15"
         app:layout_constraintTop_toBottomOf="@+id/answer_card_view"
