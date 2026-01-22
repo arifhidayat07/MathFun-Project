@@ -107,6 +107,7 @@ public class Level3Activity extends AppCompatActivity {
         // Kunci "SCORE" harus sama dengan yang dipanggil di KalahActivity
         intent.putExtra("SCORE", currentScore);
         intent.putExtra("FAILED_LEVEL", "Level3");
+        intent.putExtra("LEVEL_TERAKHIR", "Level3");
         startActivity(intent);
         finish();
     }

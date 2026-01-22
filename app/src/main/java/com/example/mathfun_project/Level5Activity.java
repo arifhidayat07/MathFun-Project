@@ -110,6 +110,7 @@ public class Level5Activity extends AppCompatActivity {
         Intent intent = new Intent(Level5Activity.this, KalahActivity.class);
         intent.putExtra("SCORE", currentScore); // Gunakan KEY "SCORE" agar seragam
         intent.putExtra("FAILED_LEVEL", "Level5");
+        intent.putExtra("LEVEL_TERAKHIR", "Level5");
         startActivity(intent);
         finish();
     }

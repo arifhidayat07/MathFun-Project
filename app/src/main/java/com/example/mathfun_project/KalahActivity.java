@@ -14,42 +14,50 @@ public class KalahActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_kalah);
 
-        // 1. Inisialisasi View
         MaterialButton btnCobaLagi = findViewById(R.id.btn_coba_lagi);
         MaterialButton btnMenuUtama = findViewById(R.id.btn_menu_utama);
         TextView tvSkorAkhir = findViewById(R.id.tv_skor_akhir);
 
-        // 2. Ambil data dari SharedPreferences (SUMBER PALING AKURAT)
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
-
-        // Ambil skor akumulasi terbaru (kunci "total_score" harus sama dengan di LevelActivity)
         int skorTerakhir = prefs.getInt("total_score", 0);
-
-        // Ambil nama pemain (kunci "username" harus sama dengan saat Login/Input Nama)
         String namaPemain = prefs.getString("username", "Pemain");
 
-        // Tampilkan skor di UI
+        // Ambil info level mana yang gagal dari Intent
+        String levelGagal = getIntent().getStringExtra("LEVEL_TERAKHIR");
+
         tvSkorAkhir.setText("Skor Akhir: " + skorTerakhir);
 
-        // 3. Simpan ke Database SQLite untuk Leaderboard
-        // Pastikan skor lebih dari 0 agar leaderboard tetap bersih dari skor kosong
+        // Simpan ke Leaderboard sebelum pindah
         if (skorTerakhir > 0) {
             DBConfig db = new DBConfig(this);
-            db.addScore(new UserScore(namaPemain, skorTerakhir));
+            db.addScore(namaPemain, skorTerakhir);
         }
 
-        // 4. Tombol Coba Lagi (Reset poin dan balik ke Level 1)
+        // --- MODIFIKASI TOMBOL COBA LAGI ---
         btnCobaLagi.setOnClickListener(v -> {
-            resetGameScore(); // Reset total_score menjadi 0
-            Intent intent = new Intent(KalahActivity.this, Level1Activity.class);
+            Intent intent;
+
+            // Cek level mana yang terakhir dimainkan pemain
+            if ("Level2".equals(levelGagal)) {
+                intent = new Intent(KalahActivity.this, Level2Activity.class);
+            } else if ("Level3".equals(levelGagal)) {
+                intent = new Intent(KalahActivity.this, Level3Activity.class);
+            } else if ("Level4".equals(levelGagal)) {
+                intent = new Intent(KalahActivity.this, Level4Activity.class);
+            } else if ("Level5".equals(levelGagal)) {
+                intent = new Intent(KalahActivity.this, Level5Activity.class);
+            } else {
+                // Default jika Level 1 atau info tidak ditemukan
+                intent = new Intent(KalahActivity.this, Level1Activity.class);
+            }
+
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
 
-        // 5. Tombol Menu Utama
         btnMenuUtama.setOnClickListener(v -> {
-            resetGameScore(); // Reset total_score menjadi 0
+            resetGameScore(); // Skor hanya direset jika pemain benar-benar menyerah ke Menu Utama
             Intent intent = new Intent(KalahActivity.this, MainActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
@@ -57,9 +65,6 @@ public class KalahActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Sangat Penting: Menghapus poin sesi ini agar saat mulai lagi tidak membawa poin lama.
-     */
     private void resetGameScore() {
         SharedPreferences prefs = getSharedPreferences("GamePrefs", MODE_PRIVATE);
         prefs.edit().putInt("total_score", 0).apply();

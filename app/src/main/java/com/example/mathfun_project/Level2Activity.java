@@ -110,6 +110,7 @@ public class Level2Activity extends AppCompatActivity {
         Intent intent = new Intent(Level2Activity.this, KalahActivity.class);
         intent.putExtra("SCORE", currentScore); // Kunci "SCORE" sesuai standar kita
         intent.putExtra("FAILED_LEVEL", "Level2");
+        intent.putExtra("LEVEL_TERAKHIR", "Level2");
         startActivity(intent);
         finish();
     }

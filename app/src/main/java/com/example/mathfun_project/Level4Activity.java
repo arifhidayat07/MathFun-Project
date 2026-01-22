@@ -107,6 +107,7 @@ public class Level4Activity extends AppCompatActivity {
         // Kunci "SCORE" harus seragam di semua activity
         intent.putExtra("SCORE", currentScore);
         intent.putExtra("FAILED_LEVEL", "Level4");
+        intent.putExtra("LEVEL_TERAKHIR", "Level4");
         startActivity(intent);
         finish();
     }
